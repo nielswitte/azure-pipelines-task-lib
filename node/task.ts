@@ -1242,6 +1242,15 @@ export function cp(sourceOrOptions: unknown, destinationOrSource: string, option
                 debug(`No matches found for pattern: ${source}`);
             }
             for (const src of sourcesToProcess) {
+                if (path.resolve(src) === path.resolve(source)) {
+                    // Literal path that was mistakenly treated as a glob pattern.
+                    // Copy directly without recursing to prevent infinite recursion.
+                    const dest = fs.existsSync(destination) && fs.lstatSync(destination).isDirectory()
+                        ? path.join(destination, path.basename(src))
+                        : destination;
+                    copyWithPreservedSymlinks(src, dest, force);
+                    continue;
+                }
                 cp(src, destination, options as CopyOptionsVariants, continueOnError, retryCount);
             }
             return;

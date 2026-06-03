@@ -349,4 +349,20 @@ describe('cp cases', () => {
     tl.rmRF('dirD');
     done();
   });
+
+  it('cp handles literal [ and ] in path without infinite recursion', (done) => {
+    const srcDir = path.resolve(DIRNAME, '[Test] dir');
+    const destDir = path.resolve(DIRNAME, '[d]est');
+    tl.mkdirP(srcDir);
+    tl.mkdirP(destDir);
+    fs.writeFileSync(path.join(srcDir, 'file.txt'), 'content');
+
+    assert.doesNotThrow(() => tl.cp(path.join(srcDir, 'file.txt'), destDir));
+    assert.ok(fs.existsSync(path.join(destDir, 'file.txt')));
+    assert.equal(fs.readFileSync(path.join(destDir, 'file.txt'), 'utf8'), 'content');
+
+    tl.rmRF(srcDir);
+    tl.rmRF(destDir);
+    done();
+  });
 });
